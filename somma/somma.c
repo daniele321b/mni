@@ -53,10 +53,16 @@ int main (int argc, char **argv)
 	/* lettura e inserimento dati*/
 	if (menum==0)
 	{
-		printf("Inserire il numero di elementi da sommare: \n");
-		fflush(stdout);
-		scanf("%d",&n);
 		
+		
+		if (argc == 1){
+			printf("Inserire il numero di elementi da sommare: \n");
+			fflush(stdout);
+			scanf("%d",&n);
+		}else{
+			n = atoi(argv[1]);
+		}
+
        	vett=(int*)calloc(n,sizeof(int));
 	}
 
