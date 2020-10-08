@@ -96,7 +96,7 @@ int main (int argc, char **argv)
 		{
 			/*creazione del vettore contenente numeri casuali */
 			*(vett+i)=(int)rand()%5-2;
-			//*(vett+i)=i;
+            //*(vett+i)=i;
 		}
 		
    		// Stampa del vettore che contiene i dati da sommare, se sono meno di 100 
@@ -191,20 +191,13 @@ int main (int argc, char **argv)
 		{
 			// calcolo dell'id del processore a cui spedire la somma locale
 			sendTo=menum-potenze[i];
-			recvBy=menum-potenze[i];
 			tag=sendTo;
 			MPI_Send(&sommaloc,1,MPI_INT,sendTo,tag,MPI_COMM_WORLD);
-			MPI_Recv(&tmp,1,MPI_INT,recvBy,tag,MPI_COMM_WORLD,&info);
-			/*calcolo della somma parziale al passo i*/
-			sommaloc=sommaloc+tmp;
-
 		}
 		else if(r==0) // se il resto � uguale a 0, il processore menum riceve
 		{
 			recvBy=menum+potenze[i];
-			sendTo=menum+potenze[i];
 			tag=menum;
-			MPI_Send(&sommaloc,1,MPI_INT,sendTo,tag,MPI_COMM_WORLD);
 			MPI_Recv(&tmp,1,MPI_INT,recvBy,tag,MPI_COMM_WORLD,&info);
 			/*calcolo della somma parziale al passo i*/
 			sommaloc=sommaloc+tmp;
