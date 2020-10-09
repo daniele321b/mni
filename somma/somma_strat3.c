@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 /*--------------------------------------------------------------------------
   Inclusione del file che contiene le definizioni necessarie al preprocessore
   per l'utilizzo di MPI.
@@ -36,7 +37,7 @@ int main (int argc, char **argv)
 	/*dichiarazioni variabili*/
     int menum,nproc,tag;
 	int n,nloc,i,somma,resto,nlocgen;
-	int ind,p,r,sendTo,recvBy,tmp;
+	int ind,p,r,sendTo,recvBy,tmp, dist;
 	int *potenze,*vett,*vett_loc,passi=0;
 	int sommaloc=0;
 	double T_inizio,T_fine,T_max;
@@ -189,15 +190,22 @@ int main (int argc, char **argv)
 	/* calcolo delle somme parziali e combinazione dei risultati parziali */
 	for(i=0;i<passi;i++)
 	{
+		//dist = (int) pow(2,(double)i);
+		dist = potenze[i];
 		// ... calcolo identificativo del processore
-		r=menum%potenze[i+1];
-		
+		//r=menum%potenze[i+1];
+		//r = menum % ((int) pow(2,(double) i+1));
+		r = menum % potenze[i+1];
 		// Se il resto � uguale a 2^i, il processore menum invia
-		if(r==potenze[i])
+		//if(r==potenze[i])
+		//if(r< (int) pow(2,(double)i))
+		if(r< potenze[i])
 		{
 			// calcolo dell'id del processore a cui spedire la somma locale
-			sendTo=menum-potenze[i];
-			recvBy=menum-potenze[i];
+			// sendTo=menum-potenze[i];
+			// recvBy=menum-potenze[i];
+			sendTo=menum+dist;
+			recvBy=menum+dist;
 			tag=sendTo;
 			MPI_Send(&sommaloc,1,MPI_INT,sendTo,tag,MPI_COMM_WORLD);
 			MPI_Recv(&tmp,1,MPI_INT,recvBy,tag,MPI_COMM_WORLD,&info);
@@ -205,10 +213,12 @@ int main (int argc, char **argv)
 			sommaloc=sommaloc+tmp;
 
 		}
-		else if(r==0) // se il resto � uguale a 0, il processore menum riceve
+		else 
 		{
-			recvBy=menum+potenze[i];
-			sendTo=menum+potenze[i];
+			// recvBy=menum+potenze[i];
+			// sendTo=menum+potenze[i];
+			sendTo=menum-dist;
+			recvBy=menum-dist;
 			tag=menum;
 			MPI_Send(&sommaloc,1,MPI_INT,sendTo,tag,MPI_COMM_WORLD);
 			MPI_Recv(&tmp,1,MPI_INT,recvBy,tag,MPI_COMM_WORLD,&info);
@@ -231,6 +241,7 @@ int main (int argc, char **argv)
 		printf("\nTempo calcolo locale: %lf\n", T_fine);
 		printf("\nMPI_Reduce max time: %f\n",T_max);
 	}// end if
+	//printf("id p: %d somma= %d\n", menum, sommaloc);
  
 	/*routine chiusura ambiente MPI*/
 	MPI_Finalize();
