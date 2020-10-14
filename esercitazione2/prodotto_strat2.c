@@ -13,10 +13,11 @@ void prod_mat_vett(double w[], double *a, int ROWS, int COLS, double v[])
 
     for (i = 0; i < ROWS; i++)
     {
-        w[i] = 0;
+        //w[i] = 0;
         for (j = 0; j < COLS; j++)
         {
             w[i] += a[i * COLS + j] * v[j];
+            //printf(" %lf * %lf = %lf \n", a[i * COLS + j], v[j], w[i]);
         }
     }
 }
@@ -81,7 +82,7 @@ int main(int argc, char **argv)
         // Alloco spazio di memoria
         A = malloc(m * n * sizeof(double));
         v = malloc(sizeof(double) * n);
-        w = malloc(sizeof(double) * m);
+        w = malloc(sizeof(double) * n);
 
         //printf("v = \n");
         for (j = 0; j < n; j++)
@@ -132,22 +133,20 @@ int main(int argc, char **argv)
 
     //Invio solo parte del vettore in sottovettore
     block = n / nproc;
-    double *local_v = malloc(block * sizeof(double));
+    double *local_v = malloc(block * m * sizeof(double));
+
     //invio parte del vettore
     MPI_Scatter(&v[0], block, MPI_DOUBLE, &local_v[0], block, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
     // tutti allocano A locale e il vettore dei risultati
     localA = malloc(local_n * m * sizeof(double));
-    local_w = malloc(local_n * sizeof(double));
+    local_w = malloc(m * sizeof(double));
 
     // Adesso 0 invia a tutti un pezzo della matrice
-    int num = local_n * n;
-
-    // double *B = malloc(m * n * sizeof(double));
-    // //trasposta di A
-
+    int num = local_n * m;
     double start = MPI_Wtime();
 
+    //invio trasposta
     MPI_Scatter(
         &B[0], num, MPI_DOUBLE,
         &localA[0], num, MPI_DOUBLE,
@@ -157,50 +156,49 @@ int main(int argc, char **argv)
     trasp_mat(localA, localB, local_n, n);
 
     // Scriviamo la matrice locale ricevuta
-    printf("localA %d = \n", me);
-    for (i = 0; i < m; i++)
-    {
-        for (j = 0; j < local_n; j++)
-            printf("%lf\t", localB[i * n + j]);
-        printf("\n");
-    }
+    // printf("localA %d = \n", me);
 
     // Effettuiamo i calcoli
-    prod_mat_vett(local_w, localA, m, local_n, local_v);
+
+    // printf("local me %d \n", me);
+    // for (i = 0; i < m; i++)
+    // {
+    //     for (j = 0; j < local_n; j++)
+    //         printf("%lf\t", localB[i * n + j]);
+    //     printf("\n");
+    // }
+
+    prod_mat_vett(local_w, localB, m, local_n, local_v);
 
     double time = MPI_Wtime() - start;
 
-    if (me == 1)
-    {
-        printf("local w = \n");
-        for (i = 0; i < local_n; i++)
-            printf("%f ", local_w[i]);
-        printf("\n");
-    }
+    // printf("local w = \n");
+    // for (i = 0; i < m; i++)
+    //     printf("%f ", local_w[i]);
+    // printf("\n");
 
-    if (me == 0)
-    {
+    // MPI_Reduce(
+    //     &local_w[0],
+    //     &w[0],
+    //     m,
+    //     MPI_DOUBLE,
+    //     MPI_SUM,
+    //     0,
+    //     MPI_COMM_WORLD);
 
-        MPI_recev();
-    }
-    else
-    {
-        MPI_Send();
-    }
-
+    MPI_Gather(&local_w[0], local_n, MPI_DOUBLE, &w[0], local_n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     //0 effettua la somma dei risultati
 
     // 0 raccoglie i risultati parziali
-    //MPI_Gather(&local_w[0], local_m, MPI_DOUBLE, &w[0], local_m, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
     // 0 stampa la soluzione
-    // if (me == 0)
-    // {
-    //     printf("w = \n");
-    //     for (i = 0; i < m; i++)
-    //         printf("%f ", w[i]);
-    //     printf("\n");
-    // }
+    if (me == 0)
+    {
+        printf("w = \n");
+        for (i = 0; i < n; i++)
+            printf("%f ", w[i]);
+        printf("\n");
+    }
 
     // if (me == 0)
     //     printf("Tempo di esecuzione %lf s \n", time);
