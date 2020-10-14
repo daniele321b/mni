@@ -25,7 +25,7 @@ void trasp_mat(double *a, double *b, int m, int n)
 {
 
     int i, j;
-    printf("Trasposta \n \n");
+    //printf("Trasposta \n \n");
     for (i = 0; i < m; i++) //righe
     {
         for (j = 0; j < n; j++) //colonne
@@ -43,7 +43,7 @@ int main(int argc, char **argv)
     int nproc;       // Numero di processi totale
     int me;          // Il mio id
     int m, n;        // Dimensione della matrice
-    int local_m;     // Dimensione dei dati locali
+    int local_n;     // Dimensione dei dati locali
     int i, j, block; // Iteratori vari
 
     // Variabili di lavoro
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
         }
 
         // Numero di righe da processare
-        local_m = m / nproc;
+        local_n = n / nproc;
 
         // Alloco spazio di memoria
         A = malloc(m * n * sizeof(double));
@@ -106,25 +106,25 @@ int main(int argc, char **argv)
         }
 
         B = malloc(m * n * sizeof(double));
-        //trasposta di A
+        // //trasposta di A
         trasp_mat(A, B, m, n);
 
-        for (i = 0; i < m; i++)
-        {
-            //w[i] = 0;
-            for (j = 0; j < n; j++)
-            {
-                printf("%lf ", B[i * n + j]);
-            }
-            printf("\n");
-        }
+        // for (i = 0; i < m; i++)
+        // {
+        //     //w[i] = 0;
+        //     for (j = 0; j < n; j++)
+        //     {
+        //         printf("%lf ", B[i * n + j]);
+        //     }
+        //     printf("\n");
+        // }
 
     } // fine me==0
 
     // Spedisco m, n, local_m e v
     MPI_Bcast(&m, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    MPI_Bcast(&local_m, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&local_n, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     // Se sono un figlio alloco v
     if (me != 0)
@@ -133,14 +133,15 @@ int main(int argc, char **argv)
     //Invio solo parte del vettore in sottovettore
     block = n / nproc;
     double *local_v = malloc(block * sizeof(double));
+    //invio parte del vettore
     MPI_Scatter(&v[0], block, MPI_DOUBLE, &local_v[0], block, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
     // tutti allocano A locale e il vettore dei risultati
-    localA = malloc(local_m * n * sizeof(double));
-    local_w = malloc(local_m * sizeof(double));
+    localA = malloc(local_n * m * sizeof(double));
+    local_w = malloc(local_n * sizeof(double));
 
     // Adesso 0 invia a tutti un pezzo della matrice
-    int num = local_m * n;
+    int num = local_n * n;
 
     // double *B = malloc(m * n * sizeof(double));
     // //trasposta di A
@@ -152,45 +153,57 @@ int main(int argc, char **argv)
         &localA[0], num, MPI_DOUBLE,
         0, MPI_COMM_WORLD);
 
-    double *localB = malloc(local_m * n * sizeof(double));
-    //trasp_mat(localA, localB, local_m, n);
+    double *localB = malloc(local_n * m * sizeof(double));
+    trasp_mat(localA, localB, local_n, n);
 
     // Scriviamo la matrice locale ricevuta
     printf("localA %d = \n", me);
-    for (i = 0; i < n; i++)
+    for (i = 0; i < m; i++)
     {
-        for (j = 0; j < local_m; j++)
-            printf("%lf\t", localA[i * n + j]);
+        for (j = 0; j < local_n; j++)
+            printf("%lf\t", localB[i * n + j]);
         printf("\n");
     }
 
     // Effettuiamo i calcoli
-    prod_mat_vett(local_w, localA, local_m, n, local_v);
+    prod_mat_vett(local_w, localA, m, local_n, local_v);
 
     double time = MPI_Wtime() - start;
 
-    if (me == 0)
+    if (me == 1)
     {
         printf("local w = \n");
-        for (i = 0; i < local_m; i++)
+        for (i = 0; i < local_n; i++)
             printf("%f ", local_w[i]);
         printf("\n");
     }
 
-    // 0 raccoglie i risultati parziali
-    MPI_Gather(&local_w[0], local_m, MPI_DOUBLE, &w[0], local_m, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
-    // 0 stampa la soluzione
     if (me == 0)
     {
-        printf("w = \n");
-        for (i = 0; i < m; i++)
-            printf("%f ", w[i]);
-        printf("\n");
+
+        MPI_recev();
+    }
+    else
+    {
+        MPI_Send();
     }
 
-    if (me == 0)
-        printf("Tempo di esecuzione %lf s \n", time);
+    //0 effettua la somma dei risultati
+
+    // 0 raccoglie i risultati parziali
+    //MPI_Gather(&local_w[0], local_m, MPI_DOUBLE, &w[0], local_m, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+    // 0 stampa la soluzione
+    // if (me == 0)
+    // {
+    //     printf("w = \n");
+    //     for (i = 0; i < m; i++)
+    //         printf("%f ", w[i]);
+    //     printf("\n");
+    // }
+
+    // if (me == 0)
+    //     printf("Tempo di esecuzione %lf s \n", time);
 
     MPI_Finalize(); /* Disattiva MPI */
     return 0;
