@@ -22,7 +22,7 @@ void prod_mat_vett(double w[], double *a, int ROWS, int COLS, double v[], int lo
     }
 }
 
-void trasp_mat(double *a, double *b, int m, int n)
+void trasp_mat(double *a, double *b, int m, int n, int local_n)
 {
 
     int i, j;
@@ -108,7 +108,7 @@ int main(int argc, char **argv)
 
         B = malloc(m * n * sizeof(double));
         // //trasposta di A
-        trasp_mat(A, B, m, n);
+        trasp_mat(A, B, m, n, n);
 
         // for (i = 0; i < m; i++)
         // {
@@ -133,7 +133,7 @@ int main(int argc, char **argv)
 
     //Invio solo parte del vettore in sottovettore
     block = n / nproc;
-    double *local_v = malloc(block * m * sizeof(double));
+    double *local_v = malloc(block * sizeof(double));
 
     //invio parte del vettore
     MPI_Scatter(&v[0], block, MPI_DOUBLE, &local_v[0], block, MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -152,8 +152,9 @@ int main(int argc, char **argv)
         &localA[0], num, MPI_DOUBLE,
         0, MPI_COMM_WORLD);
 
-    double *localB = malloc(local_n * m * sizeof(double));
-    trasp_mat(localA, localB, local_n, n);
+    double *localB = malloc(n * m * sizeof(double));
+
+    trasp_mat(localA, localB, m, n, local_n);
 
     // Scriviamo la matrice locale ricevuta
     // printf("localA %d = \n", me);
@@ -191,19 +192,18 @@ int main(int argc, char **argv)
 
     // 0 raccoglie i risultati parziali
 
-    // 0 stampa la soluzione
-    // if (me == 0)
-    // {
-    //     printf("w = \n");
-    //     for (i = 0; i < n; i++)
-    //         printf("%f ", w[i]);
-    //     printf("\n");
-    // }
+    //0 stampa la soluzione
+    if (me == 0)
+    {
+        printf("w = \n");
+        for (i = 0; i < n; i++)
+            printf("%f ", w[i]);
+        printf("\n");
+    }
 
     // if (me == 0)
     //     printf("Tempo di esecuzione %lf s \n", time);
-    free(A);
-    free(B);
+
     MPI_Finalize(); /* Disattiva MPI */
     return 0;
 }
