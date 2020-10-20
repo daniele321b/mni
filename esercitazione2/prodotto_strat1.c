@@ -31,7 +31,7 @@ int main(int argc, char **argv)
 
     // Variabili di lavoro
     double *A, *v, *localA, *local_w, *w;
-
+    double T_max;
     /*Attiva MPI*/
     MPI_Init(&argc, &argv);
     /*Trova il numero totale dei processi*/
@@ -108,13 +108,13 @@ int main(int argc, char **argv)
     // Adesso 0 invia a tutti un pezzo della matrice
     int num = local_m * n;
 
-    double start = MPI_Wtime();
-
     MPI_Scatter(
         &A[0], num, MPI_DOUBLE,
         &localA[0], num, MPI_DOUBLE,
         0, MPI_COMM_WORLD);
 
+    MPI_Barrier(MPI_COMM_WORLD); // sincronizzazione
+    double start = MPI_Wtime();
     // Scriviamo la matrice locale ricevuta
     //printf("localA %d = \n", me);
     // for (i = 0; i < local_m; i++)
@@ -127,7 +127,10 @@ int main(int argc, char **argv)
     // Effettuiamo i calcoli
     prod_mat_vett(local_w, localA, local_m, n, v);
 
+    MPI_Barrier(MPI_COMM_WORLD); // sincronizzazione
     double time = MPI_Wtime() - start;
+
+    MPI_Reduce(&time, &T_max, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
     // 0 raccoglie i risultati parziali
     MPI_Gather(&local_w[0], local_m, MPI_DOUBLE, &w[0], local_m, MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -142,7 +145,7 @@ int main(int argc, char **argv)
     // }
 
     if (me == 0)
-        printf("Tempo di esecuzione %lf s \n", time);
+        printf("Tempo di esecuzione %lf s \n", T_max);
 
     MPI_Finalize(); /* Disattiva MPI */
     return 0;

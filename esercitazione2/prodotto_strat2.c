@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 
     // Variabili di lavoro
     double *A, *B, *v, *localA, *local_w, *w;
-
+    double T_max;
     /*Attiva MPI*/
     MPI_Init(&argc, &argv);
     /*Trova il numero totale dei processi*/
@@ -88,11 +88,11 @@ int main(int argc, char **argv)
         for (j = 0; j < n; j++)
         {
             v[j] = j;
-            printf("%f ", v[j]);
+            //printf("%f ", v[j]);
         }
-        printf("\n");
+        //printf("\n");
 
-        printf("A = \n");
+        //printf("A = \n");
         for (i = 0; i < m; i++)
         {
             for (j = 0; j < n; j++)
@@ -101,9 +101,9 @@ int main(int argc, char **argv)
                     A[i * n + j] = 1.0 / (i + 1) - 1;
                 else
                     A[i * n + j] = 1.0 / (i + 1) - pow(1.0 / 2.0, j);
-                printf("%f ", A[i * n + j]);
+                //printf("%f ", A[i * n + j]);
             }
-            printf("\n");
+            //printf("\n");
         }
 
         B = malloc(m * n * sizeof(double));
@@ -161,22 +161,20 @@ int main(int argc, char **argv)
 
     // Effettuiamo i calcoli
 
-    printf("local me %d \n", me);
-    for (i = 0; i < m; i++)
-    {
-        for (j = 0; j < local_n; j++)
-            printf("%lf\t", localB[i * n + j]);
-        printf("\n");
-    }
+    // printf("local me %d \n", me);
+    // for (i = 0; i < m; i++)
+    // {
+    //     for (j = 0; j < n; j++)
+    //         printf("%lf\t", localB[i * n + j]);
+    //     printf("\n");
+    // }
 
     prod_mat_vett(local_w, localB, m, n, local_v, local_n);
-
-    double time = MPI_Wtime() - start;
 
     // printf("local w = \n");
     // for (i = 0; i < m; i++)
     //     printf("%f ", local_w[i]);
-    printf("\n");
+    //printf("\n");
 
     MPI_Reduce(
         &local_w[0],
@@ -187,22 +185,20 @@ int main(int argc, char **argv)
         0,
         MPI_COMM_WORLD);
 
-    //MPI_Gather(&local_w[0], local_n, MPI_DOUBLE, &w[0], local_n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-    //0 effettua la somma dei risultati
-
-    // 0 raccoglie i risultati parziali
+    double time = MPI_Wtime() - start;
+    MPI_Reduce(&time, &T_max, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
     //0 stampa la soluzione
-    if (me == 0)
-    {
-        printf("w = \n");
-        for (i = 0; i < n; i++)
-            printf("%f ", w[i]);
-        printf("\n");
-    }
-
     // if (me == 0)
-    //     printf("Tempo di esecuzione %lf s \n", time);
+    // {
+    //     printf("w = \n");
+    //     for (i = 0; i < n; i++)
+    //         printf("%f ", w[i]);
+    //     printf("\n");
+    // }
+
+    if (me == 0)
+        printf("Tempo di esecuzione %lf s \n", T_max);
 
     MPI_Finalize(); /* Disattiva MPI */
     return 0;
