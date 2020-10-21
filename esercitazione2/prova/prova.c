@@ -122,15 +122,11 @@ int main(int argc, char **argv)
         v = malloc(sizeof(double) * n);
         w = malloc(sizeof(double) * m);
 
-        //printf("v = \n");
         for (j = 0; j < n; j++)
         {
             v[j] = j;
-            //printf("%f ", v[j]);
         }
-        // printf("\n");
 
-        // printf("A = \n");
         for (i = 0; i < m; i++)
         {
             for (j = 0; j < n; j++)
@@ -139,15 +135,13 @@ int main(int argc, char **argv)
                     A[i * n + j] = 1.0 / (i + 1) - 1;
                 else
                     A[i * n + j] = 1.0 / (i + 1) - pow(1.0 / 2.0, j);
-                // printf("%f ", A[i * n + j]);
             }
-            // printf("\n");
         }
-        printf("Matrice A\n");
-        stampa_mat(A, m, n);
+        //printf("Matrice A\n");
+        //stampa_mat(A, m, n);
         trasp_mat(A, AT, m, n);
-        printf("Matrice AT\n");
-        stampa_mat(AT, m, n);
+        //printf("Matrice AT\n");
+        // stampa_mat(AT, m, n);
 
     } // fine me==0
 
@@ -160,12 +154,10 @@ int main(int argc, char **argv)
     if (me != 0)
         v = malloc(sizeof(double) * n);
 
-    //MPI_Bcast(&v[0], n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
     // tutti allocano A locale e il vettore dei risultati
     localA = malloc(local_n * n * sizeof(double));
     localAT = malloc(local_n * n * sizeof(double));
-    local_w = malloc(local_n * sizeof(double));
+    local_w = malloc(m * sizeof(double));
     local_v = malloc(local_n * sizeof(double));
 
     // Adesso 0 invia a tutti un pezzo della matrice
@@ -178,53 +170,52 @@ int main(int argc, char **argv)
 
     MPI_Scatter(&v[0], local_n, MPI_DOUBLE, &local_v[0], local_n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-    if (me == 1)
+    if (me != 10)
     {
 
-        printf("Matrice localAT\n");
-        stampa_mat(localAT, local_n, n);
+        // printf("Matrice localAT\n");
+        //stampa_mat(localAT, local_n, n);
         trasp_trasp(localAT, localA, m, n, local_n);
-        printf("Matrice localA\n");
-        stampa_mat(localA, m, local_n);
+        //  printf("Matrice localA\n");
+        // stampa_mat(localA, m, local_n);
 
-        printf("Vettore localv: \n");
-        for (int i = 0; i < local_n; i++)
-            printf("%lf ", local_v[i]);
-        printf("\n");
+        //  printf("Vettore localv: \n");
+        // for (int i = 0; i < local_n; i++)
+        //     printf("%lf ", local_v[i]);
+        // printf("\n");
     }
-    // MPI_Barrier(MPI_COMM_WORLD); // sincronizzazione
-    // double start = MPI_Wtime();
+    MPI_Barrier(MPI_COMM_WORLD); // sincronizzazione
+    double start = MPI_Wtime();
 
     // // Effettuiamo i calcoli
-    //prod_mat_vett(local_w, localA, m, local_n, local_v);
+
     prod_matTra_vett(local_w, localA, m, n, local_n, local_v);
-    if (me == 1)
-    {
-        printf("Vettore local_w: \n");
-        for (int i = 0; i < local_n; i++)
-            printf("%lf ", local_w[i]);
-        printf("\n");
-    }
+    // if (me == 0)
+    // {
+    //     printf("Vettore local_w: \n");
+    //     for (int i = 0; i < m; i++)
+    //         printf("%lf ", local_w[i]);
+    //     printf("\n");
+    // }
 
-    // MPI_Barrier(MPI_COMM_WORLD); // sincronizzazione
-    // double time = MPI_Wtime() - start;
+    MPI_Barrier(MPI_COMM_WORLD); // sincronizzazione
+    double time = MPI_Wtime() - start;
 
-    // MPI_Reduce(&time, &T_max, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&time, &T_max, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
-    // // 0 raccoglie i risultati parziali
-    // MPI_Gather(&local_w[0], local_m, MPI_DOUBLE, &w[0], local_m, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
-    // //0 stampa la soluzione
-    // // if (me == 0)
-    // // {
-    // //     printf("w = \n");
-    // //     for (i = 0; i < m; i++)
-    // //         printf("%f ", w[i]);
-    // //     printf("\n");
-    // // }
+    // 0 raccoglie i risultati parziali
+    MPI_Reduce(&local_w[0], &w[0], m, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
     // if (me == 0)
-    //     printf("Tempo di esecuzione %lf s \n", T_max);
+    // {
+    //     printf("w = \n");
+    //     for (i = 0; i < m; i++)
+    //         printf("%f ", w[i]);
+    //     printf("\n");
+    // }
+
+    if (me == 0)
+        printf("Tempo di esecuzione %lf s \n", T_max);
 
     MPI_Finalize(); /* Disattiva MPI */
     return 0;
