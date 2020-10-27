@@ -1,8 +1,49 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <mpi.h>
+#include <math.h>
 /* Scopo: definizione di una topologia a griglia bidimensionale
 nproc=row*col */
+
+void trasp_mat(double *a, double *b, int m, int n)
+{
+
+    int i, j;
+    //printf("Trasposta \n \n");
+    for (i = 0; i < m; i++) //righe
+    {
+        for (j = 0; j < n; j++) //colonne
+        {
+            b[j * n + i] = a[i * n + j];
+        }
+        //printf("\n");
+    }
+    //printf("\n");
+}
+void stampa_mat(double *a, int m, int n)
+{
+    int i, j;
+    for (i = 0; i < m; i++)
+    {
+        for (j = 0; j < n; j++)
+            printf("%.2f\t", a[i * n + j]);
+        printf("\n");
+    }
+}
+void trasp_trasp(double *a, double *b, int m, int n, int local_n)
+{
+
+    int i, j;
+    //printf("Trasposta \n \n");
+    for (i = 0; i < m; i++) //righe
+    {
+        for (j = 0; j < local_n; j++) //colonne
+        {
+            b[i * local_n + j] = a[j * n + i];
+        }
+    }
+}
+
 int main(int argc, char **argv)
 {
     int menum, nproc, menum_grid, row, col, local_n;
@@ -10,7 +51,7 @@ int main(int argc, char **argv)
     int dim, *ndim, reorder, *period;
     int coordinate[2], belongs[2];
     int row_rank, col_rank;
-    double *v, *local_v;
+    double *v, *local_v, *A, *local_A, *local_TA, *row_A, *row_TA;
     MPI_Comm comm_grid, commrow, commcol; /* definizione di tipo communicator */
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &menum);
@@ -38,12 +79,30 @@ int main(int argc, char **argv)
         }
 
         v = malloc(sizeof(double) * n);
+        A = malloc(m * n * sizeof(double));
+
+        //Inizializzo v
         for (j = 0; j < n; j++)
         {
             v[j] = j;
-            printf("%.2f ", v[j]);
+            //printf("%.2f ", v[j]);
         }
-        printf("\n");
+        //printf("\n");
+
+        //inizializzo A
+        for (i = 0; i < m; i++)
+        {
+            for (j = 0; j < n; j++)
+            {
+                if (j == 0)
+                    A[i * n + j] = 1.0 / (i + 1) - 1;
+                else
+                    A[i * n + j] = 1.0 / (i + 1) - pow(1.0 / 2.0, j);
+                printf("%.2f ", A[i * n + j]);
+            }
+            printf("\n");
+        }
+        printf("<----------------------------------->\n");
     }
     /* Spedizione di row da parte di 0 a tutti i processori */
     MPI_Bcast(&row, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -93,17 +152,44 @@ int main(int argc, char **argv)
     MPI_Barrier(MPI_COMM_WORLD);
 
     MPI_Bcast(&local_v[0], local_n, MPI_DOUBLE, 0, commcol);
-
+    int x = (m / row) * n;
+    int y = (n / col) * m;
+    local_A = malloc(((m * n) / row) / col * sizeof(double));
     MPI_Barrier(MPI_COMM_WORLD);
-    printf("Final local_v [%d] = \n", menum);
-    for (i = 0; i < local_n; i++)
+    if (coordinate[1] == 0)
     {
-        printf("%.2f\t", local_v[i]);
+
+        row_A = malloc(x * sizeof(double));
+
+        row_TA = malloc(y * sizeof(double));
+
+        MPI_Scatter(&A[0], x, MPI_DOUBLE, &row_A[0], x, MPI_DOUBLE, 0, commcol);
+
+        trasp_trasp(row_A, row_TA, m, n, m / row);
+
+        //printf("Processore %d coordinate nella griglia(%d, %d)\n", menum, coordinate[0], coordinate[1]);
+
+        if (coordinate[0] == 1 && coordinate[1] == 0)
+        {
+            printf("Righe me %d\n", menum);
+            stampa_mat(row_A, m / row, n);
+            printf("Trasposta me %d\n", menum);
+            stampa_mat(row_TA, n, m / row);
+        }
     }
-    printf("\n");
-    /* Stampa delle coordinate */
-    // printf("Processore %d coordinate nella griglia(%d, %d)\n", menum, coordinate[0],
-    //        coordinate[1]);
+    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Scatter(&row_TA[0], x / col, MPI_DOUBLE, &local_A[0], x / col, MPI_DOUBLE, 0, commrow);
+    local_TA = malloc(((m * n) / row) / col * sizeof(double));
+    trasp_mat(local_A, local_TA, n / col, m / row);
+    MPI_Barrier(MPI_COMM_WORLD);
+    if (coordinate[0] == 1 && coordinate[1] == 0)
+    {
+        // printf("localA me %d\n", menum);
+        // stampa_mat(local_A, m / row, n / col);
+        printf("localTA final me %d\n", menum);
+        stampa_mat(local_TA, n / col, m / row);
+    }
+
     MPI_Finalize();
     return 0;
 }
