@@ -76,21 +76,31 @@ int main(int argc, char **argv)
     local_n = n / col;
     local_v = malloc(local_n * sizeof(double));
 
+    //printf("Processore %d coordinate nella griglia(%d, %d)\n", menum, coordinate[0], coordinate[1]);
+
     MPI_Barrier(MPI_COMM_WORLD);
     if (coordinate[0] == 0)
     {
 
         MPI_Scatter(&v[0], local_n, MPI_DOUBLE, &local_v[0], local_n, MPI_DOUBLE, 0, commrow);
-        printf("local_v [%d] = \n", menum);
-        for (i = 0; i < local_n; i++)
-        {
-            printf("%.2f\t", local_v[i]);
-        }
-        printf("\n");
+        // printf("local_v [%d] = \n", menum);
+        // for (i = 0; i < local_n; i++)
+        // {
+        //     printf("%.2f\t", local_v[i]);
+        // }
+        // printf("\n");
     }
     MPI_Barrier(MPI_COMM_WORLD);
 
-    
+    MPI_Bcast(&local_v[0], local_n, MPI_DOUBLE, 0, commcol);
+
+    MPI_Barrier(MPI_COMM_WORLD);
+    printf("Final local_v [%d] = \n", menum);
+    for (i = 0; i < local_n; i++)
+    {
+        printf("%.2f\t", local_v[i]);
+    }
+    printf("\n");
     /* Stampa delle coordinate */
     // printf("Processore %d coordinate nella griglia(%d, %d)\n", menum, coordinate[0],
     //        coordinate[1]);
