@@ -122,11 +122,13 @@ int main(int argc, char **argv)
         v = malloc(sizeof(double) * n);
         w = malloc(sizeof(double) * m);
 
+        printf("Vettore: ");
         for (j = 0; j < n; j++)
         {
             v[j] = j;
+            printf("%.2f  ", v[j]);
         }
-
+        printf("\n");
         for (i = 0; i < m; i++)
         {
             for (j = 0; j < n; j++)
@@ -137,11 +139,11 @@ int main(int argc, char **argv)
                     A[i * n + j] = 1.0 / (i + 1) - pow(1.0 / 2.0, j);
             }
         }
-        //printf("Matrice A\n");
-        //stampa_mat(A, m, n);
+        printf("Matrice A\n");
+        stampa_mat(A, m, n);
         trasp_mat(A, AT, m, n);
-        //printf("Matrice AT\n");
-        // stampa_mat(AT, m, n);
+        printf("Matrice AT\n");
+        stampa_mat(AT, m, n);
 
     } // fine me==0
 
@@ -169,20 +171,20 @@ int main(int argc, char **argv)
         0, MPI_COMM_WORLD);
 
     MPI_Scatter(&v[0], local_n, MPI_DOUBLE, &local_v[0], local_n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
-    if (me != 10)
+    trasp_trasp(localAT, localA, m, n, local_n);
+    if (me == 0)
     {
 
-        // printf("Matrice localAT\n");
-        //stampa_mat(localAT, local_n, n);
-        trasp_trasp(localAT, localA, m, n, local_n);
-        //  printf("Matrice localA\n");
-        // stampa_mat(localA, m, local_n);
+        printf("Matrice localAT processo %d\n", me);
+        stampa_mat(localAT, local_n, n);
 
-        //  printf("Vettore localv: \n");
-        // for (int i = 0; i < local_n; i++)
-        //     printf("%lf ", local_v[i]);
-        // printf("\n");
+        printf("Matrice localA processo %d\n", me);
+        stampa_mat(localA, m, local_n);
+
+        printf("Vettore localv per processo %d: \n", me);
+        for (int i = 0; i < local_n; i++)
+            printf("%lf ", local_v[i]);
+        printf("\n");
     }
     MPI_Barrier(MPI_COMM_WORLD); // sincronizzazione
     double start = MPI_Wtime();
@@ -190,13 +192,13 @@ int main(int argc, char **argv)
     // // Effettuiamo i calcoli
 
     prod_matTra_vett(local_w, localA, m, n, local_n, local_v);
-    // if (me == 0)
-    // {
-    //     printf("Vettore local_w: \n");
-    //     for (int i = 0; i < m; i++)
-    //         printf("%lf ", local_w[i]);
-    //     printf("\n");
-    // }
+    if (me == 0)
+    {
+        printf("Vettore local_w per processo %d\n", m);
+        for (int i = 0; i < m; i++)
+            printf("%lf ", local_w[i]);
+        printf("\n");
+    }
 
     // 0 raccoglie i risultati parziali
     MPI_Reduce(&local_w[0], &w[0], m, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
@@ -206,13 +208,13 @@ int main(int argc, char **argv)
 
     MPI_Reduce(&time, &T_max, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
-    // if (me == 0)
-    // {
-    //     printf("w = \n");
-    //     for (i = 0; i < m; i++)
-    //         printf("%f ", w[i]);
-    //     printf("\n");
-    // }
+    if (me == 0)
+    {
+        printf("w = \n");
+        for (i = 0; i < m; i++)
+            printf("%f ", w[i]);
+        printf("\n");
+    }
 
     if (me == 0)
         printf("Tempo di esecuzione %lf s \n", T_max);
