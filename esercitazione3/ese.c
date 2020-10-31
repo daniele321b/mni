@@ -40,7 +40,7 @@ void trasp_trasp(double *a, double *b, int m, int n, int local_n)
         for (j = 0; j < local_n; j++) //colonne
         {
             b[i * local_n + j] = a[j * n + i];
-            //printf("B[%d]=%.2f = A[%d]=%.2f\n", i * local_n + j, b[i * local_n + j], j * n + i, a[j * n + i]);
+            printf("B[%d]=%.2f = A[%d]=%.2f\n", i * local_n + j, b[i * local_n + j], j * n + i, a[j * n + i]);
         }
     }
 }
@@ -169,7 +169,20 @@ int main(int argc, char **argv)
 
         //printf("Processore %d coordinate nella griglia(%d, %d)\n", menum, coordinate[0], coordinate[1]);
         //funziona matrice quadrata
-        trasp_trasp(row_A, row_TA, m, n, m / row);
+
+        //trasp_trasp(row_A, row_TA, m, n, m / row);
+        if (m == n)
+        {
+            trasp_trasp(row_A, row_TA, m, n, m / row);
+        }
+        else if (m < n)
+        {
+            trasp_trasp(row_A, row_TA, n, n, m);
+        }
+        else
+        {
+            trasp_trasp(row_A, row_TA, m, n, m / row);
+        }
         MPI_Barrier(commcol);
         //trasp_trasp(row_A, row_TA, n, m / row, m / row);
 
