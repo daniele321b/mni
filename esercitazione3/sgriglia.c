@@ -96,13 +96,15 @@ int main(int argc, char **argv)
         A = malloc(m * n * sizeof(double));
 
         //Inizializzo v
+        printf("Vettore: \n");
         for (j = 0; j < n; j++)
         {
             v[j] = j;
-            //printf("%.2f ", v[j]);
+            printf("%.2f ", v[j]);
         }
-        //printf("\n");
-
+        printf("\n");
+        printf("<----------------------------------->\n");
+        printf("Matrice: \n");
         //inizializzo A
         for (i = 0; i < m; i++)
         {
@@ -157,8 +159,17 @@ int main(int argc, char **argv)
     {
         MPI_Scatter(&v[0], local_n, MPI_DOUBLE, &local_v[0], local_n, MPI_DOUBLE, 0, commrow);
     }
-    MPI_Barrier(MPI_COMM_WORLD);
 
+    MPI_Barrier(MPI_COMM_WORLD);
+    if (coordinate[0] == 0 && coordinate[1] == 0)
+    {
+        printf("Vettore locale %d\n", menum);
+        for (j = 0; j < local_n; j++)
+        {
+            printf("%.2f ", local_v[j]);
+        }
+        printf("\n");
+    }
     MPI_Bcast(&local_v[0], local_n, MPI_DOUBLE, 0, commcol);
     int x = local_m * n;
     row_A = malloc(x * sizeof(double));
@@ -250,8 +261,8 @@ int main(int argc, char **argv)
     convertiBA(local_TB, local_TA, local_m, local_n);
     if (coordinate[0] == 0 && coordinate[1] == 0)
     {
-        printf("local A \n");
-        stampa_mat(local_A, local_m, local_n);
+        // printf("local A \n");
+        // stampa_mat(local_A, local_m, local_n);
 
         // printf("Local B \n");
         // for (int i = 0; i < local_m; i++)
@@ -272,7 +283,7 @@ int main(int argc, char **argv)
         //     printf("\n");
         // }
 
-        printf("Stampo blocco finale \n");
+        printf("Stampo local A \n");
         stampa_mat(local_TA, local_m, local_n);
     }
 

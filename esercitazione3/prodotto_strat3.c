@@ -5,21 +5,45 @@
 /* Scopo: definizione di una topologia a griglia bidimensionale
 nproc=row*col */
 
-void trasp_mat(double *a, double *b, int m, int n)
+void trasposta(double **A, double **B, int m, int n)
 {
-
     int i, j;
-    //printf("Trasposta \n \n");
-    for (i = 0; i < m; i++) //righe
+    for (i = 0; i < m; i++)
     {
-        for (j = 0; j < n; j++) //colonne
+        for (j = 0; j < n; j++)
         {
-            b[j * n + i] = a[i * n + j];
+            B[j][i] = A[i][j];
         }
-        //printf("\n");
     }
-    //printf("\n");
 }
+
+void convertiAB(double *A, double **B, int m, int n)
+{
+    int i, j;
+    for (i = 0; i < m; i++)
+    {
+        for (j = 0; j < n; j++)
+        {
+            B[i][j] = A[(i * n) + j];
+
+            //printf("B[%d][%d]%.2f =A[%d]=%.2f\n", i, j, B[i][j], (i * n) + j, A[(i * n) + j]);
+        }
+    }
+}
+
+void convertiBA(double **A, double *B, int m, int n)
+{
+    int i, j;
+    for (i = 0; i < m; i++)
+    {
+        for (j = 0; j < n; j++)
+        {
+            B[(i * n) + j] = A[i][j];
+            //printf("B[%d]=%.2f = A[%d][%d]=%.2f\n", (i * n) + j, B[(i * n) + j], i, j, A[i][j]);
+        }
+    }
+}
+
 void stampa_mat(double *a, int m, int n)
 {
     int i, j;
@@ -30,29 +54,18 @@ void stampa_mat(double *a, int m, int n)
         printf("\n");
     }
 }
-void trasp_trasp(double *a, double *b, int m, int n, int local_n)
-{
-
-    int i, j;
-    //printf("Trasposta \n \n");
-    for (i = 0; i < m; i++) //righe
-    {
-        for (j = 0; j < local_n; j++) //colonne
-        {
-            b[i * local_n + j] = a[j * n + i];
-            printf("B[%d]=%.2f = A[%d]=%.2f\n", i * local_n + j, b[i * local_n + j], j * n + i, a[j * n + i]);
-        }
-    }
-}
 
 int main(int argc, char **argv)
 {
-    int menum, nproc, menum_grid, row, col, local_n;
+    int menum, nproc, menum_grid, row, col, local_n, local_m;
     int n, m, i, j;
     int dim, *ndim, reorder, *period;
     int coordinate[2], belongs[2];
     int row_rank, col_rank;
     double *v, *local_v, *A, *local_A, *local_TA, *row_A, *row_TA;
+    double **row_B, **row_TB;
+    double **local_B, **local_TB;
+
     MPI_Comm comm_grid, commrow, commcol; /* definizione di tipo communicator */
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &menum);
@@ -83,13 +96,15 @@ int main(int argc, char **argv)
         A = malloc(m * n * sizeof(double));
 
         //Inizializzo v
+        printf("Vettore: \n");
         for (j = 0; j < n; j++)
         {
             v[j] = j;
-            //printf("%.2f ", v[j]);
+            printf("%.2f ", v[j]);
         }
-        //printf("\n");
-
+        printf("\n");
+        printf("<----------------------------------->\n");
+        printf("Matrice: \n");
         //inizializzo A
         for (i = 0; i < m; i++)
         {
@@ -134,6 +149,7 @@ int main(int argc, char **argv)
     belongs[1] = 0;
     MPI_Cart_sub(comm_grid, belongs, &commcol);
     local_n = n / col;
+    local_m = m / row;
     local_v = malloc(local_n * sizeof(double));
 
     //printf("Processore %d coordinate nella griglia(%d, %d)\n", menum, coordinate[0], coordinate[1]);
@@ -141,81 +157,134 @@ int main(int argc, char **argv)
     MPI_Barrier(MPI_COMM_WORLD);
     if (coordinate[0] == 0)
     {
-
         MPI_Scatter(&v[0], local_n, MPI_DOUBLE, &local_v[0], local_n, MPI_DOUBLE, 0, commrow);
-        // printf("local_v [%d] = \n", menum);
-        // for (i = 0; i < local_n; i++)
-        // {
-        //     printf("%.2f\t", local_v[i]);
-        // }
-        // printf("\n");
     }
-    MPI_Barrier(MPI_COMM_WORLD);
 
+    MPI_Barrier(MPI_COMM_WORLD);
+    if (coordinate[0] == 0 && coordinate[1] == 0)
+    {
+        printf("Vettore locale %d\n", menum);
+        for (j = 0; j < local_n; j++)
+        {
+            printf("%.2f ", local_v[j]);
+        }
+        printf("\n");
+    }
     MPI_Bcast(&local_v[0], local_n, MPI_DOUBLE, 0, commcol);
-    int x = (m / row) * n;
-    int y = (n / col) * m;
+    int x = local_m * n;
     row_A = malloc(x * sizeof(double));
     row_TA = malloc(x * sizeof(double));
-
     MPI_Barrier(MPI_COMM_WORLD);
     if (coordinate[1] == 0)
     {
 
         MPI_Scatter(&A[0], x, MPI_DOUBLE, &row_A[0], x, MPI_DOUBLE, 0, commcol);
         MPI_Barrier(commcol);
-        //printf("m= %d n=%d localn= %d\n", m / row, n, m / row);
-        //stampa_mat(row_A, m / row, n);
 
-        //printf("Processore %d coordinate nella griglia(%d, %d)\n", menum, coordinate[0], coordinate[1]);
-        //funziona matrice quadrata
+        row_B = (double **)malloc(local_m * sizeof(double *));
+        row_B[0] = (double *)malloc(local_m * n * sizeof(double));
+        for (i = 1; i < local_m; i++)
+        {
+            row_B[i] = row_B[0] + (i * n);
+        }
 
-        //trasp_trasp(row_A, row_TA, m, n, m / row);
-        if (m == n)
+        row_TB = (double **)malloc(n * sizeof(double *));
+        row_TB[0] = (double *)malloc(local_m * n * sizeof(double));
+        for (i = 1; i < n; i++)
         {
-            trasp_trasp(row_A, row_TA, m, n, m / row);
+            row_TB[i] = row_TB[0] + (i * local_m);
         }
-        else if (m < n)
-        {
-            trasp_trasp(row_A, row_TA, n, n, m);
-        }
-        else
-        {
-            trasp_trasp(row_A, row_TA, m, n, m / row);
-        }
+
+        convertiAB(row_A, row_B, local_m, n);
+
+        trasposta(row_B, row_TB, local_m, n);
+
+        convertiBA(row_TB, row_TA, n, local_m);
+
         MPI_Barrier(commcol);
-        //trasp_trasp(row_A, row_TA, n, m / row, m / row);
 
         if (coordinate[0] == 0 && coordinate[1] == 0)
         {
-            // printf("Righe me %d\n", menum);
-            // stampa_mat(row_A, m / row, n);
-            printf("Trasposta me %d\n", menum);
-            stampa_mat(row_TA, n, m / row);
+
+            printf("ROW_A %d\n", menum);
+            stampa_mat(row_A, local_m, n);
+
+            // for (int i = 0; i < local_m; i++)
+            // {
+            //     for (int j = 0; j < n; j++)
+            //     {
+            //         printf("%.2f\t", row_B[i][j]);
+            //     }
+            //     printf("\n");
+            // }
+
+            // for (int i = 0; i < n; i++)
+            // {
+            //     for (int j = 0; j < local_m; j++)
+            //     {
+            //         printf("%.2f\t", row_TB[i][j]);
+            //     }
+            //     printf("\n");
+            // }
+
+            // printf("ROW_A Trasposta me %d\n", menum);
+            // stampa_mat(row_TA, n, local_m);
+            free(row_B);
+            free(row_TB);
         }
     }
 
     int d = ((m / row) * (n / col));
     local_A = malloc(d * sizeof(double));
-    MPI_Barrier(MPI_COMM_WORLD);
-    MPI_Scatter(&row_TA[0], d, MPI_DOUBLE, &local_A[0], d, MPI_DOUBLE, 0, commrow);
-    if (coordinate[0] == 0 && coordinate[1] == 0)
-    {
+    local_TA = malloc(d * sizeof(double));
 
-        printf("Stampo local A \n");
-        stampa_mat(local_A, n / col, m / row);
+    local_B = (double **)malloc(local_n * sizeof(double *));
+    local_B[0] = (double *)malloc(local_m * local_n * sizeof(double));
+    for (i = 1; i < local_n; i++)
+    {
+        local_B[i] = local_B[0] + (i * local_m);
     }
 
-    local_TA = malloc(d * sizeof(double));
-    //trasp_trasp(local_A, local_TA, m / row, n / col, m / row);
-    trasp_trasp(local_A, local_TA, m / row, m / row, n / col);
+    local_TB = (double **)malloc(local_m * sizeof(double *));
+    local_TB[0] = (double *)malloc(local_m * local_n * sizeof(double));
+    for (i = 1; i < local_m; i++)
+    {
+        local_TB[i] = local_TB[0] + (i * local_n);
+    }
 
-    // trasp_mat(local_A, local_TA, n / col, m / row);
     MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Scatter(&row_TA[0], d, MPI_DOUBLE, &local_A[0], d, MPI_DOUBLE, 0, commrow);
+    convertiAB(local_A, local_B, local_n, local_m);
+
+    trasposta(local_B, local_TB, local_n, local_m);
+
+    convertiBA(local_TB, local_TA, local_m, local_n);
     if (coordinate[0] == 0 && coordinate[1] == 0)
     {
-        printf("localTA final me %d\n", menum);
-        stampa_mat(local_TA, m / row, n / col);
+        // printf("local A \n");
+        // stampa_mat(local_A, local_m, local_n);
+
+        // printf("Local B \n");
+        // for (int i = 0; i < local_m; i++)
+        // {
+        //     for (int j = 0; j < local_n; j++)
+        //     {
+        //         printf("%.2f\t", local_B[i][j]);
+        //     }
+        //     printf("\n");
+        // }
+        // printf("Local TB \n");
+        // for (int i = 0; i < local_n; i++)
+        // {
+        //     for (int j = 0; j < local_m; j++)
+        //     {
+        //         printf("%.2f\t", local_TB[i][j]);
+        //     }
+        //     printf("\n");
+        // }
+
+        printf("Stampo local A \n");
+        stampa_mat(local_TA, local_m, local_n);
     }
 
     MPI_Finalize();
