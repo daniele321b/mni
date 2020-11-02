@@ -66,15 +66,15 @@ int main(int argc, char **argv)
         v = malloc(sizeof(double) * n);
         w = malloc(sizeof(double) * m);
 
-        //printf("v = \n");
+        printf("v = \n");
         for (j = 0; j < n; j++)
         {
             v[j] = j;
-            //printf("%f ", v[j]);
+            printf("%f ", v[j]);
         }
-        // printf("\n");
+        printf("\n");
 
-        // printf("A = \n");
+        printf("A = \n");
         for (i = 0; i < m; i++)
         {
             for (j = 0; j < n; j++)
@@ -83,9 +83,9 @@ int main(int argc, char **argv)
                     A[i * n + j] = 1.0 / (i + 1) - 1;
                 else
                     A[i * n + j] = 1.0 / (i + 1) - pow(1.0 / 2.0, j);
-                // printf("%f ", A[i * n + j]);
+                printf("%f ", A[i * n + j]);
             }
-            // printf("\n");
+            printf("\n");
         }
 
     } // fine me==0
@@ -115,15 +115,18 @@ int main(int argc, char **argv)
 
     MPI_Barrier(MPI_COMM_WORLD); // sincronizzazione
     double start = MPI_Wtime();
-    // Scriviamo la matrice locale ricevuta
-    //printf("localA %d = \n", me);
-    // for (i = 0; i < local_m; i++)
-    // {
-    //     for (j = 0; j < n; j++)
-    //         printf("%lf\t", localA[i * n + j]);
-    //     printf("\n");
-    // }
+    //Scriviamo la matrice locale ricevuta
 
+    if (me == 0)
+    {
+        printf("localA %d = \n", me);
+        for (i = 0; i < local_m; i++)
+        {
+            for (j = 0; j < n; j++)
+                printf("%lf\t", localA[i * n + j]);
+            printf("\n");
+        }
+    }
     // Effettuiamo i calcoli
     prod_mat_vett(local_w, localA, local_m, n, v);
 
@@ -135,14 +138,14 @@ int main(int argc, char **argv)
     // 0 raccoglie i risultati parziali
     MPI_Gather(&local_w[0], local_m, MPI_DOUBLE, &w[0], local_m, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-    //0 stampa la soluzione
-    // if (me == 0)
-    // {
-    //     printf("w = \n");
-    //     for (i = 0; i < m; i++)
-    //         printf("%f ", w[i]);
-    //     printf("\n");
-    // }
+    //stampa la soluzione
+    if (me == 0)
+    {
+        printf("w = \n");
+        for (i = 0; i < m; i++)
+            printf("%f ", w[i]);
+        printf("\n");
+    }
 
     if (me == 0)
         printf("Tempo di esecuzione %lf s \n", T_max);
