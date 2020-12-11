@@ -160,41 +160,6 @@ def calculateAverage(person):
 			sum+=dataset[person][item]
 	return  sum / len(dataset[other])
 
-
-
-# def user_recommendations2(person):
-# 	# Gets recommendations for a person by using a weighted average of every other user's rankings
-# 	totals = {}
-# 	rankings_list =[]
-# 	simSums=0
-# 	simSumProd=0
-# 	for other in dataset:
-# 		average = calculateAverage(other)
-# 		# don't compare me to myself
-# 		if other == person:
-# 			continue
-# 		#sim = pearson_correlation(person,other)
-# 		sim = similarity_score(person,other)
-# 		#print(person,"and", other,">>>>>>>",round(sim,2))
-
-# 		# ignore scores of zero or lower
-# 		if sim <=0: 
-# 			continue
-# 		for item in dataset[other]:
-
-# 			# only score movies i haven't seen yet
-# 			if item not in dataset[person] or dataset[person][item] == 0:
-
-# 			# Similrity * score
-# 				totals.setdefault(item,0)
-# 				totals[item] += dataset[other][item]* sim
-# 				########
-# 				simSums+= sim 
-# 				x = dataset[other][item] - average
-# 				simSumProd+=sim*x
-# 		rankings_list.append(calculateAverage(person)+ (simSumProd/simSums))
-
-# 	return rankings_list
 		
 def calculateSimilarItems(prefs,n=10):
         # Create a dictionary of items showing which other items they
@@ -216,11 +181,7 @@ print("Esercitazione 7 a \n")
 print (user_recommendations('Toby'))
 print("<-------------------------------------------------------------------->")
 print("\nEsercitazione 7 b \n")
-# for other in dataset:
-# 	if other != 'Toby':
-# 		print("Sim.Euclidea tra Toby e ",other, "=", round(similarity_score('Toby',other),2) )
+
 print (user_recommendations3('Toby'))
 		
 print("<-------------------------------------------------------------------->")
-print("\nEsercitazione 7 c \n")
-#print (user_recommendations2('Toby'))

@@ -1,0 +1,26 @@
+dimensions of U, s and V
+(6, 6)
+(4,)
+(4, 4)
+vector of singular values= [17.71392084  6.39167145  3.09796097  1.32897797]
+SVD troncata con k=2. Stampa di U, s e V con 2 cifre decimali
+U2= [[-0.45 -0.54]
+ [-0.36  0.25]
+ [-0.29 -0.4 ]
+ [-0.21  0.67]
+ [-0.51  0.06]
+ [-0.53  0.19]]
+S2= [[17.71  0.  ]
+ [ 0.    6.39]]
+V2= [[-0.57 -0.22]
+ [-0.43 -0.52]
+ [-0.38  0.82]
+ [-0.59  0.05]]
+valutazioni delle stagioni di Luke [5 5 0 0 0 5]
+valutazioni di Luke proiettate nello spazio 2D
+[-0.37752201 -0.08020351]
+(2,)
+coseno dell'angolo tra luke e Ryne: 0.99
+coseno dell'angolo tra luke e Erin: 0.78
+coseno dell'angolo tra luke e Nathan: 0.23
+coseno dell'angolo tra luke e Pete: 0.96

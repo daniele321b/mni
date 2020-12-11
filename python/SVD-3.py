@@ -41,13 +41,13 @@ print('vector of singular values=',S)
 
 # ### rappresentiamo i dati in uno spazio a due dimensioni
 
-U2 = U[:,:4]
-V2 = V.T[:,:4]
-S2 = np.diag(S[:4])
+U4 = U[:,:4]
+V4 = V.T[:,:4]
+S4 = np.diag(S[:4])
 print('SVD troncata con k=4. Stampa di U, s e V con 2 cifre decimali')
-print('U2=',U2.round(2))
-print('S2=',S2.round(2))
-print('V2=',V2.round(2))
+print('U4=',U4.round(2))
+print('S4=',S4.round(2))
+print('V4=',V4.round(2))
 
 
 
@@ -71,8 +71,8 @@ print('valutazioni delle stagioni di Luke',luke)
 # L^T * U_2 * S_2^{-1}
 # 
 
-luke4d = luke.dot(U2.dot(np.linalg.inv(S2)))
-print('valutazioni di Luke proiettate nello spazio 3D')
+luke4d = luke.dot(U4.dot(np.linalg.inv(S4)))
+print('valutazioni di Luke proiettate nello spazio 4D')
 print(luke4d)
 
 
@@ -81,7 +81,7 @@ print(luke4d)
 
 print(luke4d.shape)
 
-for i,xy in enumerate(V2):
+for i,xy in enumerate(V4):
     angle = np.dot(xy, luke4d) / (np.linalg.norm(xy) * np.linalg.norm(luke4d))
     print("coseno dell'angolo tra %s e %s: %2.2g" % ('luke', users[i], angle))
 

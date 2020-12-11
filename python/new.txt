@@ -1,0 +1,29 @@
+Indice di similarità tra Toby and Lisa Rose >> 0.99
+Indice di similarità tra Toby and Gene Seymour >> 0.38
+Indice di similarità tra Toby and Mick LaSalle >> 0.92
+Indice di similarità tra Toby and Jack >> 0.66
+Indice di similarità tra Toby and Lisa Rose >> 0.99
+Indice di similarità tra Toby and Gene Seymour >> 0.38
+Indice di similarità tra Toby and Mick LaSalle >> 0.92
+Indice di similarità tra Toby and Jack >> 0.66
+Film: Lady in the Water =  2.86
+Indice di similarità tra Toby and Lisa Rose >> 0.99
+Indice di similarità tra Toby and Gene Seymour >> 0.38
+Indice di similarità tra Toby and Claudia Puig >> 0.89
+Indice di similarità tra Toby and Mick LaSalle >> 0.92
+Indice di similarità tra Toby and Lisa Rose >> 0.99
+Indice di similarità tra Toby and Gene Seymour >> 0.38
+Indice di similarità tra Toby and Claudia Puig >> 0.89
+Indice di similarità tra Toby and Mick LaSalle >> 0.92
+Film: Just My Luck =  2.58
+Indice di similarità tra Toby and Lisa Rose >> 0.99
+Indice di similarità tra Toby and Gene Seymour >> 0.38
+Indice di similarità tra Toby and Claudia Puig >> 0.89
+Indice di similarità tra Toby and Mick LaSalle >> 0.92
+Indice di similarità tra Toby and Jack >> 0.66
+Indice di similarità tra Toby and Lisa Rose >> 0.99
+Indice di similarità tra Toby and Gene Seymour >> 0.38
+Indice di similarità tra Toby and Claudia Puig >> 0.89
+Indice di similarità tra Toby and Mick LaSalle >> 0.92
+Indice di similarità tra Toby and Jack >> 0.66
+Film: The Night Listener =  3.29

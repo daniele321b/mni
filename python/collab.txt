@@ -1,0 +1,49 @@
+Esercitazione 7 a 
+
+Indice di similarità tra Toby and Lisa Rose >> 0.99
+	 Lady in the Water:2.5 * 0.99 = 2.48
+	 Just My Luck:3.0 * 0.99 = 2.97
+	 The Night Listener:3.0 * 0.99 = 2.97
+Indice di similarità tra Toby and Gene Seymour >> 0.38
+	 Lady in the Water:3.0 * 0.38 = 1.14
+	 Just My Luck:1.5 * 0.38 = 0.57
+	 The Night Listener:3.0 * 0.38 = 1.14
+Indice di similarità tra Toby and Michael Phillips >> -1.0
+Indice di similarità tra Toby and Claudia Puig >> 0.89
+	 Just My Luck:3.0 * 0.89 = 2.68
+	 The Night Listener:4.5 * 0.89 = 4.02
+Indice di similarità tra Toby and Mick LaSalle >> 0.92
+	 Lady in the Water:3.0 * 0.92 = 2.77
+	 Just My Luck:2.0 * 0.92 = 1.85
+	 The Night Listener:3.0 * 0.92 = 2.77
+Indice di similarità tra Toby and Jack >> 0.66
+	 Lady in the Water:3.0 * 0.66 = 1.99
+	 The Night Listener:3.0 * 0.66 = 1.99
+[('The Night Listener', 3.35), ('Lady in the Water', 2.83), ('Just My Luck', 2.53)]
+<-------------------------------------------------------------------->
+
+Esercitazione 7 b 
+
+Indice di similarità tra Toby and Lisa Rose >> 0.35
+	 Lady in the Water:2.5 * 0.35 = 0.87
+	 Just My Luck:3.0 * 0.35 = 1.04
+	 The Night Listener:3.0 * 0.35 = 1.04
+Indice di similarità tra Toby and Gene Seymour >> 0.26
+	 Lady in the Water:3.0 * 0.26 = 0.77
+	 Just My Luck:1.5 * 0.26 = 0.39
+	 The Night Listener:3.0 * 0.26 = 0.77
+Indice di similarità tra Toby and Michael Phillips >> 0.39
+	 Lady in the Water:2.5 * 0.39 = 0.97
+	 The Night Listener:4.0 * 0.39 = 1.55
+Indice di similarità tra Toby and Claudia Puig >> 0.36
+	 Just My Luck:3.0 * 0.36 = 1.07
+	 The Night Listener:4.5 * 0.36 = 1.61
+Indice di similarità tra Toby and Mick LaSalle >> 0.4
+	 Lady in the Water:3.0 * 0.4 = 1.2
+	 Just My Luck:2.0 * 0.4 = 0.8
+	 The Night Listener:3.0 * 0.4 = 1.2
+Indice di similarità tra Toby and Jack >> 0.27
+	 Lady in the Water:3.0 * 0.27 = 0.8
+	 The Night Listener:3.0 * 0.27 = 0.8
+[('The Night Listener', 3.46), ('Lady in the Water', 2.78), ('Just My Luck', 2.42)]
+<-------------------------------------------------------------------->
