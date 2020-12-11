@@ -1,5 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
+
 import scipy.linalg as sla
 
 # ## Problema
@@ -50,32 +50,6 @@ print('S2=',S2.round(2))
 print('V2=',V2.round(2))
 
 
-# ### Grafichiamo la proiezione dei dati in uno spazio 2D
-# 
-# Le prime due colonne di U rappresentano le stagioni. Le prime due righe di V rappresentano gli utenti.
-# 
-#  x rappresenti la prima componente, y la seconda
-
-
-plt.plot(U2[:,0], U2[:,1], 'bo', markersize=15, clip_on=False, label='seasons')
-plt.plot(V2[:,0], V2[:,1], 'rs', markersize=15, clip_on=False, label='users')
-
-ax = plt.gca()
-for i, txt in enumerate(seasons):
-    ax.text(U2[i,0], U2[i,1], txt, ha='left', va='bottom', fontsize=20)
-    
-for i, txt in enumerate(users):
-    ax.text(V2[i,0], V2[i,1], txt, ha='left', va='bottom', fontsize=20)
-
-# axis trickery
-ax = plt.gca()
-ax.spines['left'].set_color('none')
-ax.spines['bottom'].set_position('center')
-ax.spines['top'].set_color('none')
-ax.spines['left'].set_smart_bounds(True)
-ax.spines['bottom'].set_smart_bounds(True)
-ax.xaxis.set_ticks_position('bottom')
-ax.yaxis.set_ticks_position('right')
 
 
 
@@ -97,54 +71,19 @@ print('valutazioni delle stagioni di Luke',luke)
 # L^T * U_2 * S_2^{-1}
 # 
 
-luke2d = luke.dot(U2.dot(np.linalg.inv(S2)))
-print('valutazioni di Luke proiettate nello spazio 2D')
-print(luke2d)
+luke4d = luke.dot(U2.dot(np.linalg.inv(S2)))
+print('valutazioni di Luke proiettate nello spazio 3D')
+print(luke4d)
 
 
-# 
-# Grafichiamo le valutazioni di Luke così rappresentate
-
-plt.plot(U2[:,0], U2[:,1], 'bo', markersize=15, clip_on=False, label='seasons')
-plt.plot(V2[:,0], V2[:,1], 'rs', markersize=15, clip_on=False, label='users')
-
-ax = plt.gca()
-for i, txt in enumerate(seasons):
-    ax.text(U2[i,0], U2[i,1], txt, ha='left', va='bottom', fontsize=20)
-    
-for i, txt in enumerate(users):
-    ax.text(V2[i,0], V2[i,1], txt, ha='left', va='bottom', fontsize=20)
-    
-plt.plot(luke2d[0], luke2d[1], 'g*', markersize=15, clip_on=False, label='luke')
-ax.text(luke2d[0], luke2d[1], 'Luke', ha='left', va='bottom', fontsize=20)
 
 
-# axis trickery
-ax = plt.gca()
-ax.spines['left'].set_color('none')
-ax.spines['bottom'].set_position('center')
-ax.spines['top'].set_color('none')
-ax.spines['left'].set_smart_bounds(True)
-ax.spines['bottom'].set_smart_bounds(True)
-ax.xaxis.set_ticks_position('bottom')
-ax.yaxis.set_ticks_position('right')
 
-
-# Osserviamo che gli angoli minori sono tra Luke e Pete e tra Luke e Ryne
-# 
-# per quantificare la distanza usiamo la similarità coseno
-# $$
-# similarity (a,b) = (a,b)/(||a|| ||b||)
-# $$
-
-
-print(luke2d.shape)
+print(luke4d.shape)
 
 for i,xy in enumerate(V2):
-    angle = np.dot(xy, luke2d) / (np.linalg.norm(xy) * np.linalg.norm(luke2d))
+    angle = np.dot(xy, luke4d) / (np.linalg.norm(xy) * np.linalg.norm(luke4d))
     print("coseno dell'angolo tra %s e %s: %2.2g" % ('luke', users[i], angle))
 
     
-plt.show()
-plt.show(block=False) # così non si blocca l'esecuzione dopo il plot
-plt.savefig("Test.png")
+
